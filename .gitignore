@@ -1,0 +1,6 @@
+## MacOS-related
+.DS_Store
+
+node_modules
+data
+package-lock.json
