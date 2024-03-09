@@ -51,6 +51,7 @@ export class DOMUtils {
             video.controls = true;
             video.muted = true;
             video.controls = false;
+            // video.style.opacity = '0.5';
             
             setInterval( () => {
                 if( 'ontimeupdate' in callbacks ){
