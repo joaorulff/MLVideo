@@ -1,4 +1,4 @@
-# MLVideo:running_woman:
+# MLVideo :running_woman:
 
 MLVideo is a library that interactively and meaningfully visualizes outputs of vision models, such as pose detection. 
 
