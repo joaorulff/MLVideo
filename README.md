@@ -2,6 +2,9 @@
 
 MLVideo is a library that interactively and meaningfully visualizes outputs of vision models, such as pose detection. :running_woman:
 
+[Example](https://github.com/joaorulff/MLVideo/assets/7430591/447d3559-61ec-4252-bee3-3036f24ddcb3)
+
+
 ## Installation
 
 A npm local package is provided under ``./package``.
