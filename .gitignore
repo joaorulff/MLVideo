@@ -1,6 +1,7 @@
 ## MacOS-related
 .DS_Store
 
+dist
 node_modules
 data
 package-lock.json
