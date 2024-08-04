@@ -6,7 +6,7 @@ module.exports = {
     mode: 'development',
 
     entry: {
-        egocloud: path.resolve(__dirname, '../playground/index.ts')
+        mlvideo: path.resolve(__dirname, '../playground/index.ts')
     },
 
     module: {

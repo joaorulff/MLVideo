@@ -7,13 +7,35 @@ export class DOMUtils {
     * 
     */
 
-    public static append_div( container: HTMLDivElement ): HTMLDivElement {
+    public static get_video_container_size( videoWidth: number, videoHeight: number, containerWidth: number, containerHeight: number ): {width: number, height: number} {
+
+        const videoAspectRatio: number = videoWidth/videoHeight;
+        const containerAspectRatio: number = containerWidth/containerHeight;
+
+        if( containerAspectRatio >= videoAspectRatio ){
+            const height: number = containerHeight;
+            const width: number =  (videoWidth * containerHeight)/videoHeight;
+            return {width, height};
+        }
+
+        const width: number = containerWidth;
+        const height: number =  (containerWidth * videoHeight)/videoWidth;
+
+        return {width, height};
+    }
+
+    public static append_div( container: HTMLDivElement, width: string, height: string, color: string = '#000000' ): HTMLDivElement {
 
         const wrapper = document.createElement('div');
-        wrapper.style.width = '100%';
-        wrapper.style.height = `100%`;
+
+        wrapper.style.width = width;
+        wrapper.style.height = height;
         wrapper.style.position = 'relative';
-        
+        wrapper.style.display = 'flex';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.backgroundColor = color;
+
         container.append( wrapper );
 
         return wrapper;
@@ -37,13 +59,13 @@ export class DOMUtils {
 
     }
 
-    public static async append_video( container: HTMLDivElement, videoPath: string, callbacks: any = {} ): Promise<HTMLVideoElement> {
+    public static async create_video( /*container: HTMLDivElement,*/ videoPath: string, callbacks: any = {} ): Promise<HTMLVideoElement> {
         
         return new Promise( (resolve, reject) => {
 
             const video: HTMLVideoElement = document.createElement('video');
             video.src = videoPath;
-    
+                
             // setting video styles
             video.style.width = '100%';
             video.style.height = '100%';
@@ -51,20 +73,16 @@ export class DOMUtils {
             video.controls = true;
             video.muted = true;
             video.controls = false;
-            // video.style.opacity = '0.5';
             
             setInterval( () => {
                 if( 'ontimeupdate' in callbacks ){
-                    callbacks['ontimeupdate'](event);
+                    callbacks['ontimeupdate']();
                 }
             }, 50)
-
+    
             video.onloadeddata = () => {
                 resolve(video);
             }
-    
-            // appending video to container
-            container.append( video );
 
         });
 

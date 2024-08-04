@@ -34,12 +34,7 @@ export class MLVideo {
     private yScale!: d3.ScaleLinear<any, any>;
     public tailScale = d3.scalePow([0, this.tail], [0, 1]);
 
-    constructor( public container: HTMLDivElement, public videoPath: string ){
-
-        // creating the video
-        this.create_video();
-
-    }
+    constructor( public container: HTMLDivElement ){}
 
     public set_range_data( range: [number, number], poses: Pose[][] = [] ): void {
 
@@ -74,7 +69,7 @@ export class MLVideo {
  
     private update( event: Event ): void {
 
-        if( this.video.paused ){
+        if( !this.video || this.video.paused ){
             return;
         }
 
@@ -173,13 +168,26 @@ export class MLVideo {
             )
     }
 
-    private async create_video( ): Promise<void> {
+    public destroy_video(): void {
 
-        // creating container
-        this.videoContainer = DOMUtils.append_div( this.container );
+        while (this.container.firstChild) {
+            if( this.container.lastChild )
+            this.container.removeChild(this.container.lastChild);
+          }
+
+    }
+
+    public async create_video( videoPath: string ): Promise<void> {
 
         // creating video inside the container
-        this.video = await DOMUtils.append_video( this.videoContainer, this.videoPath, {'ontimeupdate': (event: Event) => this.update(event)} );
+        this.video = await DOMUtils.create_video( videoPath, {'ontimeupdate': (event: Event) => this.update(event)} );
+
+        // setting container size
+        const containerSize: {width: number, height: number} = DOMUtils.get_video_container_size( this.video.videoWidth, this.video.videoHeight, this.container.clientWidth, this.container.clientHeight );
+        
+        const videoWrapper: HTMLDivElement = DOMUtils.append_div( this.container, '100%', '100%', '#000000' );
+        this.videoContainer = DOMUtils.append_div( videoWrapper, `${containerSize.width}px`, `${containerSize.height}px` );
+        this.videoContainer.append(this.video);
 
         // creating SVG
         this.svg = DOMUtils.create_svg( this.videoContainer );
@@ -187,7 +195,6 @@ export class MLVideo {
         // creating scales
         this.xScale = d3.scaleLinear().domain([0,this.video.videoWidth]).range([0,this.video.offsetWidth]);
         this.yScale = d3.scaleLinear().domain([0,this.video.videoHeight]).range([0,this.video.offsetHeight]);
-
 
     }
 

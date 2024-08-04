@@ -6,7 +6,7 @@ module.exports = {
     mode: 'development',
     
     entry: {
-        egocloud: path.resolve(__dirname, '../src/index.ts')
+        mlvideo: path.resolve(__dirname, '../src/index.ts')
     },
 
     module: {
@@ -19,14 +19,6 @@ module.exports = {
             }
         ]
     },
-    
-    // plugins: [ new HtmlWebpackPlugin(
-    //     {
-    //         title: 'EgoCloud',
-    //         filename: 'index.html',
-    //         template: path.resolve(__dirname, '../src/template.html')
-    //     }
-    // )],
     
     resolve: {
         extensions: ['.ts', '.js']
