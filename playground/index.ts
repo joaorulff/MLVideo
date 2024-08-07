@@ -14,6 +14,8 @@ const main = async () => {
             return frame.poses.filter( (pose: any) => pose != null );
         });
 
+        console.log(posesSubset);
+        
         video.set_range_data( [400, 450], [] );
         video.play_range();
 
