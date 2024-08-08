@@ -42,7 +42,7 @@ module.exports = {
             directory: path.resolve(__dirname, '../playground')
         },
 
-        port: 5000,
+        port: 4000,
         open: true,
         hot: true,
         compress: true,

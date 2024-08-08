@@ -15,14 +15,18 @@ export class MLVideo {
     public playRange: [number, number] = [0, 0];
 
     // Geometric objects
-    public points: Point[] = [];
-    public boxes: Box[] = [];
+    // public points: Point[] = [];
+    public boxes: Box[][] = [];
     public poses: Pose[][] = [];
+
+    // Objects visibility
+    public poseVisibility: boolean = false;
+    public boundingboxVisibility: boolean = true;
 
     // constants
     public rangeScale: 'FRAME' | 'SECONDS' = 'FRAME';
     public frameRate: number = 14.4;
-    public tail: number = 20;
+    public tail: number = 2;
     
     public SKELETON: [number, number][] = [
         [1, 3], [1, 0], [2, 4], [2, 0], [0, 5], [0, 6], [5, 7], [7, 9], [6, 8], [8, 10], [5, 11], [6, 12], [11, 12],
@@ -34,18 +38,20 @@ export class MLVideo {
     private yScale!: d3.ScaleLinear<any, any>;
     public tailScale = d3.scalePow([0, this.tail], [0, 1]);
 
-    constructor( public container: HTMLDivElement ){}
+    constructor( public container: HTMLDivElement ){}    
 
-    public set_range_data( range: [number, number], poses: Pose[][] = [] ): void {
+    public set_range_data( range: [number, number], poses: Pose[][] = [], boxes: Box[][] = [] ): void {
 
         // clearing 
         this.update_poses( [] );
+        this.update_bounding_boxes( [] );
 
         // setting range
         this.playRange = range;
 
         // setting range geometric objects
         this.poses = poses;
+        this.boxes = boxes;
 
         // stopping video and positioning track
         this.video.pause();
@@ -83,12 +89,74 @@ export class MLVideo {
             return;
         }
         
-        const index: number = Math.floor(currentTime - this.playRange[0]);
+        const index: number = Math.ceil(currentTime - this.playRange[0]);
         const start: number = (index - this.tail) < 0 ? 0 : (index - this.tail);
         const end: number = index;
 
+        // if the index is less than 0, it will try to render all the provided data, crashing the application.
+        // It happens because currentTime start as something slightly smaller than the initial timestamp.
+        // Ex: if I set the timestamp to start at frame 400, currentTime might be 399.999. This is because the frame rate precision.
+        if( index < 0 ){
+            return;
+        }
+
         const trajectory: Pose[][] = this.poses.slice( start, end );
-        this.update_poses( trajectory );
+        const box: Box[][] = this.boxes.slice( start, end );
+
+        if( this.poseVisibility ) this.update_poses( trajectory );
+        if( this.boundingboxVisibility ) this.update_bounding_boxes( box );
+
+    }
+
+    private update_bounding_boxes( boxes: Box[][] ): void {
+
+        const timeGroups = this.svg
+            .selectAll('.time-group')
+            .data( boxes )
+            .join(
+                enter => enter
+                    .append('g')
+                    .attr('class', 'time-group')
+                    .attr('transform', 'translate(0,0)')
+                    .attr('opacity', (d: any, index: number) => this.tailScale(index) ),
+                update => update,
+                exit => exit.remove()
+        )
+
+        const boxGroups = timeGroups
+            .selectAll('.box-group')
+            .data( (boxes: Box[]) => boxes )
+            .join(
+                enter => enter
+                    .append('g')
+                    .attr('class', 'box-group')
+                    .attr('transform', 'translate(0,0)'),
+                update => update,
+                exit => exit.remove()
+        )
+
+        const boxeElements = boxGroups
+            .selectAll('.box-rect')
+            .data( (box: Box) => [box.points] )
+            .join(
+                enter => enter
+                    .append('rect')
+                    .attr('class', 'box-rect')
+                    .attr('x', (points: number[]) => this.xScale(points[0]) )
+                    .attr('y', (points: number[]) => this.yScale(points[1]) )
+                    .attr('width', (points: number[]) => this.xScale(points[2] - points[0]) )
+                    .attr('height', (points: number[]) => this.yScale(points[3] - points[1]))
+                    .attr('stroke', '#370617')
+                    .attr('stroke-width', 5)
+                    .attr('fill', '#9d0208'),
+                update => update  
+                    .attr('x', (points: number[]) => this.xScale(points[0]) )
+                    .attr('y', (points: number[]) => this.yScale(points[1]) )
+                    .attr('width', (points: number[]) => this.xScale(points[2] - points[0]) )
+                    .attr('height', (points: number[]) => this.yScale(points[3] - points[1]) ),
+                exit => exit.remove()
+            )
+
 
     }
 
@@ -125,7 +193,7 @@ export class MLVideo {
                 
                 const bones: number[][][] = [];
                 this.SKELETON.forEach( (boneJoint: [number, number]) => {
-                    const bone: number[][] = [ pose[boneJoint[0]], pose[boneJoint[1]] ];
+                    const bone: number[][] = [ pose.points[boneJoint[0]], pose.points[boneJoint[1]] ];
                     bones.push( bone );
                 })
 
@@ -152,7 +220,7 @@ export class MLVideo {
 
         const poseJoints = poseGroups
             .selectAll('.pose-joint')
-            .data( (pose: Pose) => pose )
+            .data( (pose: Pose) => pose.points )
             .join(
                 enter => enter
                     .append('circle')

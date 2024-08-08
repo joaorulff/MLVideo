@@ -72,14 +72,13 @@ export class DOMUtils {
             video.style.objectFit = 'cover';
             video.controls = true;
             video.muted = true;
-            video.controls = false;
             
             setInterval( () => {
                 if( 'ontimeupdate' in callbacks ){
                     callbacks['ontimeupdate']();
                 }
             }, 50)
-    
+            
             video.onloadeddata = () => {
                 resolve(video);
             }
