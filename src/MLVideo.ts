@@ -20,13 +20,13 @@ export class MLVideo {
     public poses: Pose[][] = [];
 
     // Objects visibility
-    public poseVisibility: boolean = false;
-    public boundingboxVisibility: boolean = true;
+    public poseVisibility: boolean = true;
+    public boundingboxVisibility: boolean = false;
 
     // constants
     public rangeScale: 'FRAME' | 'SECONDS' = 'FRAME';
     public frameRate: number = 14.4;
-    public tail: number = 2;
+    public tail: number = 15;
     
     public SKELETON: [number, number][] = [
         [1, 3], [1, 0], [2, 4], [2, 0], [0, 5], [0, 6], [5, 7], [7, 9], [6, 8], [8, 10], [5, 11], [6, 12], [11, 12],
@@ -101,8 +101,8 @@ export class MLVideo {
         }
 
         const trajectory: Pose[][] = this.poses.slice( start, end );
-        const box: Box[][] = this.boxes.slice( start, end );
-
+        const box: Box[][] = this.boxes.slice( end, end + 1 );
+        
         if( this.poseVisibility ) this.update_poses( trajectory );
         if( this.boundingboxVisibility ) this.update_bounding_boxes( box );
 
@@ -111,14 +111,15 @@ export class MLVideo {
     private update_bounding_boxes( boxes: Box[][] ): void {
 
         const timeGroups = this.svg
-            .selectAll('.time-group')
+            .selectAll('.box-time-group')
             .data( boxes )
             .join(
                 enter => enter
                     .append('g')
-                    .attr('class', 'time-group')
+                    .attr('class', 'box-time-group')
                     .attr('transform', 'translate(0,0)')
-                    .attr('opacity', (d: any, index: number) => this.tailScale(index) ),
+                    .attr('opacity', (d: any, index: number) => 0.5 )
+                    ,
                 update => update,
                 exit => exit.remove()
         )
@@ -135,7 +136,7 @@ export class MLVideo {
                 exit => exit.remove()
         )
 
-        const boxeElements = boxGroups
+        const boxElements = boxGroups
             .selectAll('.box-rect')
             .data( (box: Box) => [box.points] )
             .join(
@@ -146,9 +147,9 @@ export class MLVideo {
                     .attr('y', (points: number[]) => this.yScale(points[1]) )
                     .attr('width', (points: number[]) => this.xScale(points[2] - points[0]) )
                     .attr('height', (points: number[]) => this.yScale(points[3] - points[1]))
-                    .attr('stroke', '#370617')
-                    .attr('stroke-width', 5)
-                    .attr('fill', '#9d0208'),
+                    .attr('stroke', '#1f78b4')
+                    .attr('stroke-width', 3)
+                    .attr('fill', '#a6cee3'),
                 update => update  
                     .attr('x', (points: number[]) => this.xScale(points[0]) )
                     .attr('y', (points: number[]) => this.yScale(points[1]) )
@@ -156,19 +157,17 @@ export class MLVideo {
                     .attr('height', (points: number[]) => this.yScale(points[3] - points[1]) ),
                 exit => exit.remove()
             )
-
-
     }
 
     private update_poses( poses: Pose[][] ): void {
 
         const timeGroups = this.svg
-            .selectAll('.time-group')
+            .selectAll('.pose-time-group')
             .data( poses )
             .join(
                 enter => enter
                     .append('g')
-                    .attr('class', 'time-group')
+                    .attr('class', 'pose-time-group')
                     .attr('transform', 'translate(0,0)')
                     .attr('opacity', (d: any, index: number) => this.tailScale(index) ),
                 update => update,

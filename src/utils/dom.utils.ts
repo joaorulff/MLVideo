@@ -70,7 +70,7 @@ export class DOMUtils {
             video.style.width = '100%';
             video.style.height = '100%';
             video.style.objectFit = 'cover';
-            video.controls = true;
+            video.controls = false;
             video.muted = true;
             
             setInterval( () => {
